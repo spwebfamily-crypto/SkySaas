@@ -1,0 +1,39 @@
+<svg width="1440" height="960" viewBox="0 0 1440 960" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1440" height="960" fill="#050807"/>
+  <g opacity=".22">
+    <path d="M0 160H1440M0 320H1440M0 480H1440M0 640H1440M0 800H1440" stroke="#EAFBF1"/>
+    <path d="M160 0V960M320 0V960M480 0V960M640 0V960M800 0V960M960 0V960M1120 0V960M1280 0V960" stroke="#EAFBF1"/>
+  </g>
+  <circle cx="728" cy="484" r="330" stroke="#3DF5A3" stroke-width="2" stroke-dasharray="10 18" opacity=".72"/>
+  <circle cx="728" cy="484" r="226" stroke="#56B6FF" stroke-width="2" stroke-dasharray="4 16" opacity=".65"/>
+  <circle cx="728" cy="484" r="118" stroke="#F5B544" stroke-width="2" opacity=".6"/>
+  <path d="M728 484L1030 335" stroke="url(#beam)" stroke-width="90" stroke-linecap="round" opacity=".26"/>
+  <path d="M310 640C470 430 630 350 918 297" stroke="#3DF5A3" stroke-width="5" stroke-linecap="round"/>
+  <path d="M401 721C617 619 772 614 1057 735" stroke="#56B6FF" stroke-width="5" stroke-linecap="round"/>
+  <path d="M483 302C664 423 853 452 1160 412" stroke="#F5B544" stroke-width="5" stroke-linecap="round"/>
+  <g fill="#EAFBF1">
+    <circle cx="310" cy="640" r="10"/>
+    <circle cx="918" cy="297" r="10"/>
+    <circle cx="401" cy="721" r="10"/>
+    <circle cx="1057" cy="735" r="10"/>
+    <circle cx="483" cy="302" r="10"/>
+    <circle cx="1160" cy="412" r="10"/>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="512" y="374" width="430" height="220" rx="22" fill="#0A1110" stroke="#EAFBF1" stroke-opacity=".2"/>
+    <rect x="548" y="416" width="132" height="14" rx="7" fill="#3DF5A3"/>
+    <rect x="548" y="460" width="286" height="18" rx="9" fill="#EAFBF1" fill-opacity=".9"/>
+    <rect x="548" y="506" width="220" height="12" rx="6" fill="#EAFBF1" fill-opacity=".38"/>
+    <rect x="548" y="538" width="342" height="10" rx="5" fill="#EAFBF1" fill-opacity=".22"/>
+    <circle cx="858" cy="438" r="42" stroke="#3DF5A3" stroke-width="10"/>
+  </g>
+  <defs>
+    <linearGradient id="beam" x1="728" y1="484" x2="1030" y2="335" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#3DF5A3"/>
+      <stop offset="1" stop-color="#3DF5A3" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="shadow" x="482" y="344" width="490" height="280" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="20" stdDeviation="20" flood-color="#000000" flood-opacity=".45"/>
+    </filter>
+  </defs>
+</svg>
