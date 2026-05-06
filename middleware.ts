@@ -1,12 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
-import { hasSupabaseBrowserEnv } from "@/lib/env";
+import { hasSupabaseBrowserEnv, isBypassAuth } from "@/lib/env";
 
 const protectedPrefixes = ["/app", "/billing"];
 const authPrefixes = ["/login", "/signup"];
 
 export async function middleware(request: NextRequest) {
-  if (!hasSupabaseBrowserEnv()) {
+  if (!hasSupabaseBrowserEnv() || isBypassAuth()) {
     return NextResponse.next({ request });
   }
 

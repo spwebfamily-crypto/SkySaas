@@ -6,6 +6,10 @@ export function getSiteUrl() {
   ).replace(/\/$/, "");
 }
 
+export function isBypassAuth() {
+  return process.env.BYPASS_AUTH === "true";
+}
+
 export function hasSupabaseBrowserEnv() {
   return Boolean(
     process.env.NEXT_PUBLIC_SUPABASE_URL &&

@@ -1,3 +1,5 @@
+import { isBypassAuth } from "@/lib/env";
+import { buildEntitlement } from "@/lib/entitlements";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { SearchConsole } from "@/components/app/search-console";
@@ -10,6 +12,22 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 export default async function AppPage() {
+  if (isBypassAuth()) {
+    const entitlement = buildEntitlement("pro", "active", 0);
+    return (
+      <>
+        <header className="app-nav">
+          <Link href="/app" aria-label="SkySearch app"><SkyLogo /></Link>
+          <nav aria-label="Navegação do app">
+            <Link href="/pricing">Planos</Link>
+            <span className="ghost-button" style={{ opacity: 0.5 }}>bypass</span>
+          </nav>
+        </header>
+        <SearchConsole initialEntitlement={entitlement} />
+      </>
+    );
+  }
+
   if (!hasSupabaseBrowserEnv()) {
     return <SetupRequired title="Supabase precisa ser configurado" />;
   }
