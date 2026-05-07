@@ -13,7 +13,7 @@ export function SkyLogo({ compact = false }: { compact?: boolean }) {
       {!compact && (
         <span>
           <strong>SkySearch</strong>
-          <small>Aviation Command</small>
+          <small>Travel Ops</small>
         </span>
       )}
     </span>

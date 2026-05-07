@@ -11,8 +11,7 @@ export function SetupRequired({ title = "Configuração necessária" }: { title?
         <p className="eyebrow">SkySearch setup</p>
         <h1>{title}</h1>
         <p>
-          Configure Supabase e Stripe no `.env.local` para ativar login, quota e
-          pagamentos reais.
+          Configure Supabase e Stripe no `.env.local` para ativar login, quota e pagamentos reais.
         </p>
         <div className="missing-env-list">
           {missing.map((key) => (

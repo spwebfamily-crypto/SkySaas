@@ -3,7 +3,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { hasSupabaseBrowserEnv } from "@/lib/env";
 
 const protectedPrefixes = ["/app", "/billing"];
-const authPrefixes = ["/login", "/signup"];
+const authPaths = ["/login", "/signup", "/auth/login", "/auth/signup"];
 
 export async function middleware(request: NextRequest) {
   if (!hasSupabaseBrowserEnv()) {
@@ -39,11 +39,11 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isProtected = protectedPrefixes.some((prefix) => pathname.startsWith(prefix));
-  const isAuthPage = authPrefixes.some((prefix) => pathname.startsWith(prefix));
+  const isAuthPage = authPaths.includes(pathname);
 
   if (isProtected && !user) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/auth/login";
     url.searchParams.set("next", pathname);
     return NextResponse.redirect(url);
   }

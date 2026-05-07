@@ -50,11 +50,7 @@ export const plans: PlanConfig[] = [
     dailySearchLimit: null,
     apiRequests: "1.000 req/dia",
     checkout: true,
-    features: [
-      "Tudo do Explorer",
-      "Detector de erro tarifário",
-      "API e exportação CSV",
-    ],
+    features: ["Tudo do Explorer", "Detector de erro tarifário", "API e exportação CSV"],
   },
   {
     id: "business",
@@ -62,11 +58,7 @@ export const plans: PlanConfig[] = [
     monthlyPrice: "Custom",
     dailySearchLimit: null,
     apiRequests: "SLA dedicado",
-    features: [
-      "API ilimitada",
-      "Widget white-label",
-      "Analytics e suporte dedicado",
-    ],
+    features: ["API ilimitada", "Widget white-label", "Analytics e suporte dedicado"],
   },
 ];
 

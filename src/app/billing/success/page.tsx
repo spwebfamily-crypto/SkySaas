@@ -9,11 +9,11 @@ export default function BillingSuccessPage() {
         <p className="eyebrow">Pagamento recebido</p>
         <h1>Assinatura em processamento</h1>
         <p>
-          O Stripe enviará o webhook para ativar o plano. Se já configurou o
-          webhook local, a quota ilimitada aparece em instantes.
+          O Stripe enviará o webhook para ativar o plano. Se o webhook local estiver configurado,
+          a quota ilimitada aparece em instantes.
         </p>
-        <Link className="primary-button" href="/app">
-          Voltar ao cockpit
+        <Link className="primary-button" href="/app/search">
+          Voltar à busca
         </Link>
       </section>
     </main>

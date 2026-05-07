@@ -134,11 +134,7 @@ export function blockedProvider(provider: ProviderStatus["provider"], label: str
   } satisfies ProviderResult;
 }
 
-export async function fetchWithTimeout(
-  input: string,
-  init: RequestInit,
-  timeoutMs = 8000,
-) {
+export async function fetchWithTimeout(input: string, init: RequestInit, timeoutMs = 8000) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
 

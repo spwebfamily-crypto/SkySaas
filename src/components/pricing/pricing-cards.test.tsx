@@ -9,12 +9,12 @@ vi.mock("next/navigation", () => ({
 describe("PricingCards", () => {
   afterEach(cleanup);
 
-  it("renders free and paid SaaS plans", () => {
+  it("renders free and paid SaaS plans without the enterprise sales card", () => {
     render(<PricingCards currentPlan="free" />);
 
     expect(screen.queryByText("Free")).not.toBeNull();
     expect(screen.queryByText("Explorer")).not.toBeNull();
     expect(screen.queryByText("Pro")).not.toBeNull();
-    expect(screen.queryByText("Business")).not.toBeNull();
+    expect(screen.queryByText("Business")).toBeNull();
   });
 });

@@ -14,22 +14,22 @@ export default async function PricingPage() {
   const entitlement = user && supabase ? await getEntitlement(supabase, user.id) : null;
 
   return (
-    <main className="marketing-shell">
+    <main className="marketing-shell pricing-page">
       <header className="marketing-nav">
         <Link href="/" aria-label="SkySearch home">
           <SkyLogo />
         </Link>
         <nav aria-label="Navegação pública">
-          <Link href="/app">App</Link>
-          <Link href={user ? "/app" : "/login"}>{user ? "Cockpit" : "Login"}</Link>
+          <Link href="/app/search">App</Link>
+          <Link href={user ? "/app/search" : "/auth/login"}>{user ? "Busca" : "Login"}</Link>
         </nav>
       </header>
       <section className="pricing-hero">
-        <p className="eyebrow">Assinatura real</p>
-        <h1>Stripe Checkout para planos Explorer e Pro.</h1>
+        <p className="eyebrow">Planos</p>
+        <h1>Stripe Checkout para Explorer e Pro.</h1>
         <p>
-          Free começa com quota diária. Planos pagos sincronizam via webhook e
-          liberam pesquisas ilimitadas automaticamente.
+          Free começa com quota diária. Planos pagos sincronizam via webhook e liberam
+          pesquisas ilimitadas automaticamente.
         </p>
       </section>
       <PricingCards currentPlan={entitlement?.plan} />

@@ -47,10 +47,8 @@ function normalizeAward(record: SeatsRecord, query: SearchQuery, index: number):
   const airline = readString(record, ["Airline", "airline", "Carrier", "carrier"]) ?? "Award seat";
   const source = readString(record, ["Source", "source", "Program", "program"]) ?? "Seats.aero";
   const miles =
-    readNumber(record, ["MileageCost", "mileage_cost", "miles", "YMileage", "JMileage"]) ??
-    0;
-  const taxes =
-    readNumber(record, ["Taxes", "taxes", "TotalTaxes", "total_taxes", "fees"]) ?? 0;
+    readNumber(record, ["MileageCost", "mileage_cost", "miles", "YMileage", "JMileage"]) ?? 0;
+  const taxes = readNumber(record, ["Taxes", "taxes", "TotalTaxes", "total_taxes", "fees"]) ?? 0;
   const seatsLeft = readNumber(record, ["RemainingSeats", "remaining_seats", "Seats", "seats"]);
   const departure =
     readString(record, ["DepartureDate", "departure_date", "Date", "date"]) ??

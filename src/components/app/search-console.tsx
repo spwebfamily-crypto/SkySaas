@@ -1,18 +1,15 @@
 "use client";
 
-import { FormEvent, useState } from "react";
+import type { CSSProperties, FormEvent, ReactNode } from "react";
+import { useMemo, useState } from "react";
 import {
   AlertTriangle,
+  ArrowRight,
   ArrowUpRight,
-  Gauge,
+  ChevronDown,
   Loader2,
-  Lock,
-  Plane,
-  Radar,
   Search,
-  Settings,
-  Sparkles,
-  Zap,
+  SlidersHorizontal,
 } from "lucide-react";
 import type { Entitlement } from "@/lib/entitlements";
 import type { ProviderStatus, SearchMode, SearchResult, SortMode } from "@/lib/search/types";
@@ -53,11 +50,17 @@ export function SearchConsole({ initialEntitlement }: { initialEntitlement: Enti
   const [cabin, setCabin] = useState("economy");
   const [mode, setMode] = useState<SearchMode>("cash");
   const [sort, setSort] = useState<SortMode>("recommended");
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const [state, setState] = useState<"idle" | "loading" | "success" | "error" | "limited">("idle");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [providers, setProviders] = useState<ProviderStatus[]>([]);
   const [entitlement, setEntitlement] = useState(initialEntitlement);
   const [error, setError] = useState<SearchError | null>(null);
+
+  const routeLabel = useMemo(
+    () => `${origin.toUpperCase()} - ${destination.toUpperCase()}`,
+    [destination, origin],
+  );
 
   async function handleSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -83,12 +86,14 @@ export function SearchConsole({ initialEntitlement }: { initialEntitlement: Enti
 
     if (response.status === 402) {
       setState("limited");
+      setResults([]);
       setError(payload as SearchError);
       return;
     }
 
     if (!response.ok) {
       setState("error");
+      setResults([]);
       setError(payload as SearchError);
       return;
     }
@@ -100,299 +105,342 @@ export function SearchConsole({ initialEntitlement }: { initialEntitlement: Enti
     setState("success");
   }
 
-  async function openBillingPortal() {
-    const response = await fetch("/api/billing/portal", { method: "POST" });
-    const payload = (await response.json()) as { url?: string };
-
-    if (payload.url) {
-      window.location.assign(payload.url);
-    } else {
-      window.location.assign("/pricing");
-    }
-  }
-
-  const quotaPercent =
-    entitlement.dailySearchLimit === null
-      ? 100
-      : Math.min((entitlement.searchesUsedToday / entitlement.dailySearchLimit) * 100, 100);
+  const providerIssues = providers.filter((provider) => provider.status !== "ok");
+  const limitReached = state === "limited" || entitlement.canSearch === false;
 
   return (
-    <main className="app-console">
-      <section className="console-hero">
+    <div className="search-workspace">
+      <section className="page-heading">
         <div>
-          <p className="eyebrow">Aviation Command</p>
-          <h1>Radar real de passagens</h1>
-          <p>
-            Pesquise voos cash com Amadeus e Duffel. Milhas só entram quando a
-            autorização comercial da Seats.aero estiver configurada.
-          </p>
+          <p className="eyebrow">Busca</p>
+          <h1>Encontre opções reais sem perder o estado da quota.</h1>
         </div>
-        <div className="quota-tower">
-          <div className="quota-ring" style={{ "--quota": `${quotaPercent * 3.6}deg` } as React.CSSProperties}>
-            <span>{entitlement.dailySearchLimit === null ? "∞" : entitlement.searchesRemainingToday}</span>
-          </div>
-          <strong>{entitlement.plan.toUpperCase()}</strong>
-          <small>
-            {entitlement.dailySearchLimit === null
-              ? "Pesquisas ilimitadas"
-              : `${entitlement.searchesUsedToday}/${entitlement.dailySearchLimit} usadas hoje`}
-          </small>
-          <button className="ghost-button" onClick={openBillingPortal} type="button">
-            <Settings size={16} />
-            Assinatura
-          </button>
-        </div>
+        <p>
+          Cash consulta Amadeus e Duffel. Milhas só funciona quando Seats.aero estiver autorizado
+          comercialmente no ambiente.
+        </p>
       </section>
 
-      <section className="mission-board">
-        <form className="search-module" onSubmit={handleSearch}>
-          <div className="module-header">
-            <div>
-              <p className="eyebrow">Nova missão</p>
-              <h2>{origin.toUpperCase()} → {destination.toUpperCase()}</h2>
-            </div>
-            <div className="mode-switch">
-              <button
-                className={mode === "cash" ? "active" : ""}
-                onClick={() => setMode("cash")}
-                type="button"
-              >
-                Cash
-              </button>
-              <button
-                className={mode === "miles" ? "active" : ""}
-                onClick={() => setMode("miles")}
-                type="button"
-              >
-                Milhas
-              </button>
-            </div>
-          </div>
+      <form className="search-console" onSubmit={handleSearch}>
+        <div className="search-line" aria-label="Parâmetros principais">
+          <label>
+            <span>Origem</span>
+            <input
+              autoCapitalize="characters"
+              maxLength={3}
+              onChange={(event) => setOrigin(event.target.value)}
+              value={origin}
+            />
+          </label>
+          <label>
+            <span>Destino</span>
+            <input
+              autoCapitalize="characters"
+              maxLength={3}
+              onChange={(event) => setDestination(event.target.value)}
+              value={destination}
+            />
+          </label>
+          <label>
+            <span>Ida</span>
+            <input onChange={(event) => setDepartureDate(event.target.value)} type="date" value={departureDate} />
+          </label>
+          <label>
+            <span>Volta</span>
+            <input onChange={(event) => setReturnDate(event.target.value)} type="date" value={returnDate} />
+          </label>
+          <label>
+            <span>Adultos</span>
+            <select onChange={(event) => setAdults(Number(event.target.value))} value={adults}>
+              {[1, 2, 3, 4, 5, 6].map((count) => (
+                <option key={count} value={count}>
+                  {count}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button className="primary-button" disabled={state === "loading" || limitReached} type="submit">
+            {state === "loading" ? <Loader2 className="spin" size={17} /> : <Search size={17} />}
+            Pesquisar
+          </button>
+        </div>
 
-          <div className="search-fields">
-            <label>
-              <span>Origem</span>
-              <input maxLength={3} onChange={(event) => setOrigin(event.target.value)} value={origin} />
-            </label>
-            <label>
-              <span>Destino</span>
-              <input maxLength={3} onChange={(event) => setDestination(event.target.value)} value={destination} />
-            </label>
-            <label>
-              <span>Ida</span>
-              <input onChange={(event) => setDepartureDate(event.target.value)} type="date" value={departureDate} />
-            </label>
-            <label>
-              <span>Volta</span>
-              <input onChange={(event) => setReturnDate(event.target.value)} type="date" value={returnDate} />
-            </label>
-            <label>
-              <span>Adultos</span>
-              <select onChange={(event) => setAdults(Number(event.target.value))} value={adults}>
-                {[1, 2, 3, 4, 5, 6].map((count) => (
-                  <option key={count} value={count}>
-                    {count}
-                  </option>
-                ))}
-              </select>
-            </label>
+        <div className="search-meta">
+          <strong>{routeLabel}</strong>
+          <span>{mode === "cash" ? "Cash" : "Milhas"}</span>
+          <button
+            aria-expanded={showAdvanced}
+            className="text-button"
+            onClick={() => setShowAdvanced((current) => !current)}
+            type="button"
+          >
+            <SlidersHorizontal size={16} />
+            Filtros
+            <ChevronDown className={showAdvanced ? "rotate" : ""} size={16} />
+          </button>
+        </div>
+
+        {showAdvanced && (
+          <div className="advanced-panel">
+            <fieldset>
+              <legend>Modo</legend>
+              <div className="segmented-control">
+                <button
+                  aria-pressed={mode === "cash"}
+                  className={mode === "cash" ? "active" : ""}
+                  onClick={() => setMode("cash")}
+                  type="button"
+                >
+                  Cash
+                </button>
+                <button
+                  aria-pressed={mode === "miles"}
+                  className={mode === "miles" ? "active" : ""}
+                  onClick={() => setMode("miles")}
+                  type="button"
+                >
+                  Milhas
+                </button>
+              </div>
+              {mode === "miles" && (
+                <p className="field-note">
+                  Seats.aero exige chave de API e confirmação comercial antes de consultar milhas.
+                </p>
+              )}
+            </fieldset>
+
             <label>
               <span>Cabine</span>
               <select onChange={(event) => setCabin(event.target.value)} value={cabin}>
-                <option value="economy">Económica</option>
-                <option value="premium_economy">Premium</option>
+                <option value="economy">Econômica</option>
+                <option value="premium_economy">Premium economy</option>
                 <option value="business">Executiva</option>
                 <option value="first">Primeira</option>
               </select>
             </label>
-          </div>
 
-          <div className="search-footer">
-            <div className="sort-tabs">
-              {(["recommended", "price", "duration"] as SortMode[]).map((sortKey) => (
-                <button
-                  className={sort === sortKey ? "active" : ""}
-                  key={sortKey}
-                  onClick={() => setSort(sortKey)}
-                  type="button"
-                >
-                  {sortKey === "recommended" ? "Score" : sortKey === "price" ? "Preço" : "Tempo"}
-                </button>
-              ))}
-            </div>
-            <button className="primary-button" disabled={state === "loading"} type="submit">
-              {state === "loading" ? <Loader2 className="spin" size={18} /> : <Search size={18} />}
-              Pesquisar
-            </button>
+            <fieldset>
+              <legend>Ordenar por</legend>
+              <div className="segmented-control">
+                {(["recommended", "price", "duration"] as SortMode[]).map((sortKey) => (
+                  <button
+                    aria-pressed={sort === sortKey}
+                    className={sort === sortKey ? "active" : ""}
+                    key={sortKey}
+                    onClick={() => setSort(sortKey)}
+                    type="button"
+                  >
+                    {sortKey === "recommended" ? "Score" : sortKey === "price" ? "Preço" : "Tempo"}
+                  </button>
+                ))}
+              </div>
+            </fieldset>
           </div>
-        </form>
+        )}
+      </form>
 
-        <aside className="provider-panel">
-          <div className="radar-visual" aria-hidden="true">
-            <span />
-            <i />
-          </div>
-          <div className="provider-list">
-            {providers.length === 0 ? (
-              <>
-                <ProviderPlaceholder name="Amadeus" />
-                <ProviderPlaceholder name="Duffel" />
-                <ProviderPlaceholder name="Seats.aero" />
-              </>
-            ) : (
-              providers.map((provider) => <ProviderRow key={provider.provider} provider={provider} />)
-            )}
-          </div>
-        </aside>
-      </section>
-
-      {state === "limited" && (
-        <StatusBanner
-          icon={Lock}
-          title="Limite diário atingido"
-          text={`O plano Free permite ${error?.limit ?? 5} pesquisas por dia. Ative Explorer ou Pro para pesquisar sem limite.`}
+      {limitReached && (
+        <InlineCallout
           actionHref="/pricing"
           actionLabel="Ver planos"
-        />
+          tone="danger"
+          title="Limite diário atingido"
+        >
+          O plano Free permite {error?.limit ?? entitlement.dailySearchLimit ?? 5} pesquisas por dia.
+          Explorer e Pro liberam pesquisa ilimitada.
+        </InlineCallout>
       )}
 
       {state === "error" && (
-        <StatusBanner
-          icon={AlertTriangle}
+        <InlineCallout
+          actionHref="/app/settings/integrations"
+          actionLabel="Ver integrações"
+          tone="warning"
           title="Pesquisa não concluída"
-          text={error?.message ?? error?.code ?? "Verifique a configuração e tente novamente."}
-          actionHref="/pricing"
-          actionLabel="Ver configuração"
-        />
+        >
+          {error?.message ?? error?.code ?? "Verifique a configuração do ambiente e tente novamente."}
+        </InlineCallout>
       )}
 
-      {state === "loading" && <ResultsSkeleton />}
+      {providerIssues.length > 0 && <ProviderIssues providers={providerIssues} />}
 
-      {state !== "loading" && state !== "idle" && results.length === 0 && (
-        <StatusBanner
-          icon={Radar}
-          title="Sem resultados normalizados"
-          text="Os providers responderam sem disponibilidade ou ainda precisam de credenciais reais."
-          actionHref="/app"
-          actionLabel="Nova busca"
-        />
-      )}
+      <section className="results-panel" aria-busy={state === "loading"} aria-live="polite">
+        <div className="results-heading">
+          <div>
+            <p className="eyebrow">Resultados</p>
+            <h2>{state === "success" ? `${results.length} opções normalizadas` : "Lista de ofertas"}</h2>
+          </div>
+          <span>{state === "loading" ? "A consultar providers" : sortLabel(sort)}</span>
+        </div>
 
-      {results.length > 0 && (
-        <section className="results-grid" aria-label="Resultados reais">
-          {results.map((result, index) => (
-            <ResultCard index={index} key={result.id} result={result} />
-          ))}
-        </section>
-      )}
-    </main>
-  );
-}
+        {state === "loading" && <ResultsSkeleton />}
 
-function ProviderPlaceholder({ name }: { name: string }) {
-  return (
-    <div className="provider-row muted">
-      <span />
-      <strong>{name}</strong>
-      <small>A aguardar</small>
+        {state === "idle" && (
+          <div className="empty-state">
+            <strong>Pronto para pesquisar.</strong>
+            <p>Insira a rota e use Pesquisar. Os resultados aparecerão em linhas comparáveis.</p>
+          </div>
+        )}
+
+        {state !== "loading" && state !== "idle" && results.length === 0 && (
+          <div className="empty-state">
+            <strong>Sem resultados normalizados.</strong>
+            <p>
+              Tente outra data, remova filtros ou confira se os providers estão configurados em
+              Integrações.
+            </p>
+            <a className="secondary-button" href="/app/settings/integrations">
+              Ver integrações
+              <ArrowRight size={16} />
+            </a>
+          </div>
+        )}
+
+        {results.length > 0 && (
+          <div className="result-list">
+            {results.map((result, index) => (
+              <ResultRow index={index} key={result.id} result={result} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
 
-function ProviderRow({ provider }: { provider: ProviderStatus }) {
+function ProviderIssues({ providers }: { providers: ProviderStatus[] }) {
   return (
-    <div className={`provider-row ${provider.status}`}>
-      <span />
-      <strong>{provider.label}</strong>
-      <small>{provider.message}</small>
-      <em>{provider.latencyMs ? `${provider.latencyMs} ms` : provider.status}</em>
-    </div>
+    <section className="provider-notices" aria-label="Estado dos providers">
+      {providers.map((provider) => (
+        <article className="provider-notice" key={provider.provider}>
+          <AlertTriangle size={17} />
+          <div>
+            <strong>{provider.label}</strong>
+            <p>{provider.message}</p>
+          </div>
+          <a href="/app/settings/integrations">Integrações</a>
+        </article>
+      ))}
+    </section>
   );
 }
 
-function ResultCard({ result, index }: { result: SearchResult; index: number }) {
+function ResultRow({ result, index }: { result: SearchResult; index: number }) {
   const price =
     result.cashPrice !== null
       ? moneyFormatter.format(result.cashPrice)
       : result.miles !== null
         ? `${milesFormatter.format(result.miles)} mi`
         : "Sob consulta";
+  const hasStrongScore = result.score >= 88;
+  const priceTone = hasStrongScore ? "good" : result.score < 55 ? "warning" : "neutral";
 
   return (
-    <article className="result-card" style={{ "--delay": `${index * 45}ms` } as React.CSSProperties}>
-      <div className="result-score">
-        <Gauge size={17} />
-        {result.score}
-      </div>
-      <div>
-        <p className="eyebrow">{result.source}</p>
-        <h3>{result.airline}</h3>
-        <div className="route-line">
-          <span>{result.route}</span>
-          <Plane size={15} />
-          <span>{result.stops === 0 ? "Direto" : `${result.stops} escala`}</span>
-        </div>
-      </div>
-      <div className="result-details">
-        <span>{new Date(result.departure).toLocaleString("pt-PT", { dateStyle: "medium", timeStyle: "short" })}</span>
-        <span>{result.durationMin ? `${Math.floor(result.durationMin / 60)}h ${result.durationMin % 60}m` : "Duração não informada"}</span>
-        <span>{result.cabin}</span>
-      </div>
-      <div className="result-bottom">
+    <article className="result-row" style={{ "--delay": `${index * 35}ms` } as CSSProperties}>
+      <div className={`result-price ${priceTone}`}>
         <strong>{price}</strong>
-        <div className="badge-row">
-          {result.badges.map((badge) => (
-            <span key={badge}>{badge}</span>
-          ))}
+        <span>{priceTone === "good" ? "Bom score" : priceTone === "warning" ? "Revise" : "Tarifa"}</span>
+      </div>
+
+      <div className="result-main">
+        <div>
+          <strong>{result.airline}</strong>
+          <span>
+            {result.route} · {result.flightNumber || result.source}
+          </span>
+        </div>
+        <div className="result-times">
+          <span>{formatDateTime(result.departure)}</span>
+          <span>{formatDuration(result.durationMin)}</span>
+          <span>{result.stops === 0 ? "Direto" : `${result.stops} escala${result.stops > 1 ? "s" : ""}`}</span>
         </div>
       </div>
-      {result.bookingUrl && (
-        <a className="result-link" href={result.bookingUrl} rel="noreferrer" target="_blank">
-          Abrir provider <ArrowUpRight size={15} />
-        </a>
-      )}
+
+      <div className="result-side">
+        <span className="provider-tag">{result.source}</span>
+        <span>Score {result.score}</span>
+        {result.badges.length > 0 && <small>{result.badges.slice(0, 2).join(" · ")}</small>}
+      </div>
+
+      <div className="row-actions">
+        {result.bookingUrl ? (
+          <a href={result.bookingUrl} rel="noreferrer" target="_blank">
+            Abrir
+            <ArrowUpRight size={15} />
+          </a>
+        ) : (
+          <span>Sem link direto</span>
+        )}
+      </div>
     </article>
   );
 }
 
 function ResultsSkeleton() {
   return (
-    <section className="results-grid" aria-label="A carregar resultados">
-      {[0, 1, 2].map((item) => (
-        <div className="result-card skeleton" key={item}>
+    <div className="result-list" aria-label="A carregar resultados">
+      {[0, 1, 2, 3].map((item) => (
+        <div className="result-row skeleton" key={item}>
           <span />
           <i />
           <b />
         </div>
       ))}
+    </div>
+  );
+}
+
+function InlineCallout({
+  actionHref,
+  actionLabel,
+  children,
+  title,
+  tone,
+}: {
+  actionHref: string;
+  actionLabel: string;
+  children: ReactNode;
+  title: string;
+  tone: "warning" | "danger";
+}) {
+  return (
+    <section className={`inline-callout ${tone}`} role="status">
+      <AlertTriangle size={18} />
+      <div>
+        <strong>{title}</strong>
+        <p>{children}</p>
+      </div>
+      <a href={actionHref}>
+        {actionLabel}
+        <ArrowRight size={15} />
+      </a>
     </section>
   );
 }
 
-function StatusBanner({
-  actionHref,
-  actionLabel,
-  icon: Icon,
-  text,
-  title,
-}: {
-  actionHref: string;
-  actionLabel: string;
-  icon: typeof Sparkles;
-  text: string;
-  title: string;
-}) {
-  return (
-    <section className="status-banner">
-      <Icon size={24} />
-      <div>
-        <strong>{title}</strong>
-        <p>{text}</p>
-      </div>
-      <a className="secondary-button" href={actionHref}>
-        {actionLabel}
-        <Zap size={16} />
-      </a>
-    </section>
-  );
+function sortLabel(sort: SortMode) {
+  if (sort === "price") {
+    return "Menor preço";
+  }
+  if (sort === "duration") {
+    return "Menor duração";
+  }
+  return "Recomendado";
+}
+
+function formatDateTime(value: string) {
+  return new Date(value).toLocaleString("pt-PT", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  });
+}
+
+function formatDuration(minutes: number) {
+  if (!minutes) {
+    return "Duração não informada";
+  }
+
+  const hours = Math.floor(minutes / 60);
+  const remaining = minutes % 60;
+  return `${hours}h ${remaining}m`;
 }

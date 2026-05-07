@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { FormEvent, useState } from "react";
-import { ArrowRight, Mail, Shield, UserPlus } from "lucide-react";
+import { ArrowRight, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/browser";
 
 type AuthMode = "login" | "signup";
@@ -11,7 +11,7 @@ type AuthMode = "login" | "signup";
 export function AuthForm({ mode }: { mode: AuthMode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const next = searchParams.get("next") ?? "/app";
+  const next = searchParams.get("next") ?? "/app/search";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
@@ -81,6 +81,8 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     }
 
     setState("loading");
+    setMessage(null);
+
     const supabase = createClient();
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
@@ -97,16 +99,15 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
 
   return (
     <section className="auth-card">
-      <p className="eyebrow">{mode === "login" ? "Acesso protegido" : "Criar conta"}</p>
-      <h1>{mode === "login" ? "Entre no cockpit" : "Ative o seu radar"}</h1>
+      <p className="eyebrow">{mode === "login" ? "Acesso" : "Nova conta"}</p>
+      <h1>{mode === "login" ? "Bem-vindo de volta." : "Comece com o plano Free."}</h1>
       <p className="auth-copy">
         {mode === "login"
-          ? "Login obrigatório para controlar quota, histórico e assinatura."
-          : "Comece com 5 pesquisas grátis por dia e desbloqueie ilimitado quando precisar."}
+          ? "Entre para consultar quota, histórico, assinatura e integrações."
+          : "Crie uma conta para usar 5 pesquisas por dia antes de escolher um plano pago."}
       </p>
 
       <button className="oauth-button" onClick={handleGoogle} type="button">
-        <Shield size={18} />
         Continuar com Google
       </button>
 
@@ -149,25 +150,21 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         </label>
 
         {message && (
-          <p className={`form-message ${state === "error" ? "error" : "success"}`}>
+          <p aria-live="polite" className={`form-message ${state === "error" ? "error" : "success"}`}>
             {message}
           </p>
         )}
 
         <button className="primary-button" disabled={state === "loading"} type="submit">
-          {mode === "login" ? <Mail size={18} /> : <UserPlus size={18} />}
-          {state === "loading"
-            ? "A processar"
-            : mode === "login"
-              ? "Entrar"
-              : "Criar conta"}
-          <ArrowRight size={18} />
+          {state === "loading" ? <Loader2 className="spin" size={17} /> : null}
+          {state === "loading" ? "A processar" : mode === "login" ? "Entrar" : "Criar conta"}
+          <ArrowRight size={17} />
         </button>
       </form>
 
       <p className="auth-switch">
         {mode === "login" ? "Ainda não tem conta?" : "Já tem conta?"}{" "}
-        <Link href={mode === "login" ? "/signup" : "/login"}>
+        <Link href={mode === "login" ? "/auth/signup" : "/auth/login"}>
           {mode === "login" ? "Criar conta" : "Entrar"}
         </Link>
       </p>
